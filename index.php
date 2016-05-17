@@ -1,7 +1,7 @@
 <?php
 
 /*
- * Copyright (C) 2002-2015 AfterLogic Corp. (www.afterlogic.com)
+ * Copyright (C) 2002-2016 AfterLogic Corp. (www.afterlogic.com)
  * Distributed under the terms of the license described in LICENSE
  *
  */
@@ -36,9 +36,17 @@ class CcPanelChangePasswordPlugin extends AApiChangePasswordPlugin
 	 */
 	protected function isLocalAccount($oAccount)
 	{
-		return \in_array(\strtolower(\trim($oAccount->IncomingMailServer)), array(
+		$account_imap = strtolower(trim($oAccount->IncomingMailServer));
+		$cpanel_servers = CApi::GetConf('plugins.cpanel-change-password.config.servers', array(
 		   'localhost', '127.0.0.1', '::1', '::1/128', '0:0:0:0:0:0:0:1'
-		  ));		
+		  ));
+		if (is_array($cpanel_servers)) {
+			return in_array($account_imap, $cpanel_servers);
+		}
+		else
+		{
+			return ($account_imap === $cpanel_servers);
+		}
 	}
 	
 	/**
@@ -58,6 +66,7 @@ class CcPanelChangePasswordPlugin extends AApiChangePasswordPlugin
 		if (0 < strlen($oAccount->PreviousMailPassword) &&
 			$oAccount->PreviousMailPassword !== $oAccount->IncomingMailPassword)
 		{
+			
 			$cpanel_hostname = CApi::GetConf('plugins.cpanel-change-password.config.hostname', 'localhost');
 			$cpanel_username = CApi::GetConf('plugins.cpanel-change-password.config.username', 'local');
 			$cpanel_password = CApi::GetConf('plugins.cpanel-change-password.config.password', '');
